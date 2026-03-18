@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonata — Where concept art meets interface design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080910;
+    --bg2: #0e0f16;
+    --bg3: #13141e;
+    --fg: rgba(255,255,255,0.88);
+    --fg2: rgba(255,255,255,0.5);
+    --fg3: rgba(255,255,255,0.25);
+    --accent: rgba(160,140,230,0.9);
+    --accent2: rgba(90,170,210,0.8);
+    --accent-bg: rgba(160,140,230,0.12);
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--serif);
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+  }
+  .cursor-ring {
+    width: 32px; height: 32px;
+    border: 0.5px solid rgba(160,140,230,0.4);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.25s, height 0.25s;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(8,9,16,0.9) 0%, transparent 100%);
+    backdrop-filter: blur(0px);
+  }
+  .nav-logo {
+    font-family: var(--serif); font-size: 15px; font-weight: 300;
+    letter-spacing: 0.28em; text-transform: uppercase; color: var(--fg);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-links a {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--fg2); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-cta {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--bg); background: var(--accent);
+    border: none; border-radius: 6px; padding: 9px 18px;
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* SECTIONS */
+  section { position: relative; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 48px 80px;
+    overflow: hidden;
+  }
+
+  .hero-glow-1 {
+    position: absolute; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(130,100,220,0.15) 0%, transparent 65%);
+    top: -100px; left: -150px; pointer-events: none;
+  }
+  .hero-glow-2 {
+    position: absolute; width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(70,150,200,0.1) 0%, transparent 65%);
+    top: 40%; right: -100px; pointer-events: none;
+  }
+  .hero-glow-3 {
+    position: absolute; width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,120,200,0.08) 0%, transparent 65%);
+    bottom: 10%; left: 40%; pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.8s 0.2s ease forwards;
+  }
+
+  .hero-title {
+    font-family: var(--serif); font-size: clamp(56px, 8vw, 110px);
+    font-weight: 300; line-height: 0.95; letter-spacing: -0.02em;
+    color: var(--fg); max-width: 800px;
+    opacity: 0; animation: fadeUp 0.9s 0.35s ease forwards;
+  }
+  .hero-title em { font-style: italic; color: var(--accent); }
+
+  .hero-sub {
+    font-family: var(--serif); font-size: clamp(16px, 1.8vw, 20px);
+    font-weight: 300; font-style: italic; color: var(--fg2);
+    max-width: 480px; line-height: 1.6; margin-top: 24px;
+    opacity: 0; animation: fadeUp 0.9s 0.5s ease forwards;
+  }
+
+  .hero-actions {
+    display: flex; align-items: center; gap: 24px; margin-top: 40px;
+    opacity: 0; animation: fadeUp 0.9s 0.65s ease forwards;
+  }
+  .btn-primary {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--bg); background: var(--accent);
+    border: none; border-radius: 8px; padding: 14px 28px;
+    text-decoration: none; transition: opacity 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-ghost {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--fg2);
+    border: 0.5px solid var(--border2); border-radius: 8px; padding: 14px 28px;
+    text-decoration: none; transition: color 0.2s, border-color 0.2s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { color: var(--fg); border-color: rgba(255,255,255,0.25); }
+
+  .hero-scroll {
+    position: absolute; bottom: 32px; right: 48px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--fg3);
+    writing-mode: vertical-rl;
+    opacity: 0; animation: fadeUp 1s 1s ease forwards;
+  }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    overflow: hidden; border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 0; background: var(--bg2);
+  }
+  .marquee-track {
+    display: flex; gap: 0;
+    animation: marquee 18s linear infinite;
+    width: max-content;
+  }
+  .marquee-item {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--fg3);
+    padding: 0 32px; white-space: nowrap;
+  }
+  .marquee-item span { color: var(--accent); margin-right: 32px; }
+
+  /* ABOUT */
+  #about {
+    padding: 120px 48px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+    align-items: center;
+  }
+  .about-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+  }
+  .about-title {
+    font-family: var(--serif); font-size: clamp(32px, 3.5vw, 48px);
+    font-weight: 300; line-height: 1.1; color: var(--fg);
+    margin-bottom: 28px;
+  }
+  .about-title em { font-style: italic; color: var(--accent); }
+  .about-body {
+    font-family: var(--serif); font-size: 17px; font-weight: 300;
+    line-height: 1.8; color: var(--fg2);
+  }
+  .about-body p + p { margin-top: 16px; }
+  .about-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  }
+  .stat-card {
+    background: var(--bg2); padding: 28px 24px;
+    border: 0.5px solid var(--border);
+  }
+  .stat-card:first-child { border-radius: 12px 0 0 0; }
+  .stat-card:nth-child(2) { border-radius: 0 12px 0 0; }
+  .stat-card:nth-child(3) { border-radius: 0 0 0 12px; }
+  .stat-card:last-child { border-radius: 0 0 12px 0; }
+  .stat-num {
+    font-family: var(--serif); font-size: 40px; font-weight: 300;
+    color: var(--fg); line-height: 1; margin-bottom: 8px;
+  }
+  .stat-num em { font-style: italic; color: var(--accent); }
+  .stat-label {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--fg3);
+  }
+
+  /* TOKEN */
+  #token {
+    padding: 100px 48px;
+    background: var(--bg2);
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .token-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 56px;
+  }
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: var(--serif); font-size: clamp(28px, 3vw, 42px);
+    font-weight: 300; color: var(--fg); line-height: 1.1;
+  }
+  .section-title em { font-style: italic; color: var(--accent); }
+  .token-steps {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  }
+  .token-step {
+    background: var(--bg3); border: 0.5px solid var(--border);
+    padding: 32px 28px; position: relative; overflow: hidden;
+    transition: background 0.25s;
+  }
+  .token-step:hover { background: #181926; }
+  .token-step:first-child { border-radius: 12px 0 0 12px; }
+  .token-step:last-child { border-radius: 0 12px 12px 0; }
+  .step-num {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    color: var(--fg3); margin-bottom: 28px;
+  }
+  .step-title {
+    font-family: var(--serif); font-size: 22px; font-weight: 400;
+    color: var(--fg); margin-bottom: 12px; line-height: 1.2;
+  }
+  .step-body {
+    font-family: var(--serif); font-size: 14px; font-weight: 300;
+    color: var(--fg2); line-height: 1.7;
+  }
+  .step-accent {
+    position: absolute; bottom: 28px; right: 24px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+    color: var(--accent); text-transform: uppercase;
+  }
+
+  /* PERKS */
+  #perks { padding: 100px 48px; }
+  .perks-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+    margin-top: 56px;
+  }
+  .perk-card {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    padding: 36px 32px; transition: background 0.2s;
+    position: relative;
+  }
+  .perk-card:hover { background: var(--bg3); }
+  .perk-card:nth-child(1) { border-radius: 12px 0 0 0; }
+  .perk-card:nth-child(2) { border-radius: 0 12px 0 0; }
+  .perk-card:nth-child(3) { border-radius: 0 0 0 12px; }
+  .perk-card:nth-child(4) { border-radius: 0 0 12px 0; }
+  .perk-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-bottom: 20px;
+  }
+  .perk-title {
+    font-family: var(--serif); font-size: 20px; font-weight: 400;
+    color: var(--fg); margin-bottom: 10px;
+  }
+  .perk-body {
+    font-family: var(--serif); font-size: 14px; font-weight: 300;
+    color: var(--fg2); line-height: 1.7;
+  }
+  .perk-tag {
+    position: absolute; top: 28px; right: 24px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--fg3);
+    border: 0.5px solid var(--border); border-radius: 4px; padding: 3px 7px;
+  }
+
+  /* DROP */
+  #drop {
+    padding: 100px 48px;
+    background: var(--bg2);
+    border-top: 0.5px solid var(--border);
+  }
+  .drop-inner {
+    max-width: 800px; margin: 0 auto; text-align: center;
+  }
+  .drop-title {
+    font-family: var(--serif); font-size: clamp(40px, 5vw, 72px);
+    font-weight: 300; line-height: 1; margin: 24px 0 16px;
+  }
+  .drop-title em { font-style: italic; color: var(--accent); }
+  .drop-subtitle {
+    font-family: var(--serif); font-size: 17px; font-style: italic;
+    font-weight: 300; color: var(--fg2); margin-bottom: 48px; line-height: 1.6;
+  }
+  .drop-items {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+    text-align: left; margin-bottom: 40px;
+  }
+  .drop-item {
+    background: var(--bg3); border: 0.5px solid var(--border);
+    padding: 20px 22px; display: flex; gap: 14px; align-items: center;
+  }
+  .drop-item:nth-child(1) { border-radius: 10px 0 0 0; }
+  .drop-item:nth-child(2) { border-radius: 0 10px 0 0; }
+  .drop-item:nth-child(3) { border-radius: 0 0 0 10px; }
+  .drop-item:nth-child(4) { border-radius: 0 0 10px 0; }
+  .drop-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .drop-item-text {
+    font-family: var(--serif); font-size: 14px; font-weight: 400;
+    color: rgba(255,255,255,0.7); flex: 1;
+  }
+  .drop-item-tag {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+    color: var(--fg3); border: 0.5px solid var(--border);
+    border-radius: 4px; padding: 2px 7px; flex-shrink: 0;
+  }
+  .drop-price-row {
+    display: flex; align-items: center; justify-content: center; gap: 24px;
+    margin-bottom: 32px;
+  }
+  .drop-price {
+    font-family: var(--serif); font-size: 52px; font-weight: 300;
+    color: var(--fg); line-height: 1;
+  }
+  .drop-price span { font-size: 22px; color: var(--fg2); }
+  .drop-price-note {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--fg3); line-height: 1.6;
+    text-align: left;
+  }
+  .drop-royalty {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--fg3); margin-bottom: 28px;
+  }
+  .drop-royalty span { color: rgba(160,140,230,0.6); }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 48px;
+    border-top: 0.5px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 24px;
+  }
+  .footer-logo {
+    font-family: var(--serif); font-size: 14px; font-weight: 300;
+    letter-spacing: 0.24em; text-transform: uppercase; color: var(--fg2);
+  }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-links a {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--fg3); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--fg2); }
+  .footer-copy {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+    color: var(--fg3); width: 100%;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 20px 24px; }
+    .nav-links { display: none; }
+    #hero { padding: 0 24px 60px; }
+    #about { padding: 80px 24px; grid-template-columns: 1fr; gap: 48px; }
+    #token { padding: 80px 24px; }
+    .token-steps { grid-template-columns: 1fr; }
+    .token-step:first-child { border-radius: 12px 12px 0 0; }
+    .token-step:last-child { border-radius: 0 0 12px 12px; }
+    #perks { padding: 80px 24px; }
+    .perks-grid { grid-template-columns: 1fr; }
+    .perk-card:nth-child(1) { border-radius: 12px 12px 0 0; }
+    .perk-card:nth-child(4) { border-radius: 0 0 12px 12px; }
+    .perk-card:nth-child(2), .perk-card:nth-child(3) { border-radius: 0; }
+    #drop { padding: 80px 24px; }
+    .drop-items { grid-template-columns: 1fr; }
+    footer { padding: 40px 24px; }
+    .token-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Sonata</a>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#token">Token</a>
+    <a href="#perks">Perks</a>
+    <a href="#drop">Drop</a>
+    <a href="https://orynth.dev" target="_blank" class="nav-cta">Get SONATA</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow-1"></div>
+  <div class="hero-glow-2"></div>
+  <div class="hero-glow-3"></div>
+
+  <div style="position:relative;z-index:2;">
+    <div class="hero-eyebrow">Creator token · Solana · Orynth</div>
+    <h1 class="hero-title">Where <em>concept art</em><br>meets interface<br>design.</h1>
+    <p class="hero-sub">Dreamy worlds, built to feel alive. Exclusive access for the people who want to see how it's made.</p>
+    <div class="hero-actions">
+      <a href="https://orynth.dev" target="_blank" class="btn-primary">Hold SONATA</a>
+      <a href="#drop" class="btn-ghost">See the drop</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll">Scroll to explore</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>✦</span> Concept art</div>
+    <div class="marquee-item"><span>✦</span> UI/UX design</div>
+    <div class="marquee-item"><span>✦</span> Procreate brushes</div>
+    <div class="marquee-item"><span>✦</span> Figma kits</div>
+    <div class="marquee-item"><span>✦</span> Process journals</div>
+    <div class="marquee-item"><span>✦</span> Dreamy atmospheres</div>
+    <div class="marquee-item"><span>✦</span> Texture overlays</div>
+    <div class="marquee-item"><span>✦</span> Token-gated drops</div>
+    <div class="marquee-item"><span>✦</span> Concept art</div>
+    <div class="marquee-item"><span>✦</span> UI/UX design</div>
+    <div class="marquee-item"><span>✦</span> Procreate brushes</div>
+    <div class="marquee-item"><span>✦</span> Figma kits</div>
+    <div class="marquee-item"><span>✦</span> Process journals</div>
+    <div class="marquee-item"><span>✦</span> Dreamy atmospheres</div>
+    <div class="marquee-item"><span>✦</span> Texture overlays</div>
+    <div class="marquee-item"><span>✦</span> Token-gated drops</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="reveal">
+    <div class="about-label">About Sonata</div>
+    <h2 class="about-title">The studio,<br><em>open</em>.</h2>
+    <div class="about-body">
+      <p>Sonata sits at the intersection of concept art and UI/UX design — a practice built around atmosphere, detail, and the feeling that every screen or scene should pull you in before you even read the words.</p>
+      <p>Most creative work lives behind finished posts and polished portfolios. Sonata opens the studio. Token holders get early access to works in progress, design breakdowns, and exclusive digital products before they're available anywhere else.</p>
+      <p>This is a space for people who care about how beautiful things are made.</p>
+    </div>
+  </div>
+  <div class="about-stats reveal">
+    <div class="stat-card">
+      <div class="stat-num">Vol.<em>01</em></div>
+      <div class="stat-label">First drop — The Reverie Collection</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><em>24</em></div>
+      <div class="stat-label">Atmospheric Procreate brushes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><em>40</em></div>
+      <div class="stat-label">Figma UI components</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><em>12</em>%</div>
+      <div class="stat-label">Resale royalty — forever</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOKEN -->
+<section id="token">
+  <div class="token-header reveal">
+    <div>
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Hold <em>SONATA</em>,<br>get inside.</h2>
+    </div>
+    <a href="https://orynth.dev" target="_blank" class="btn-primary">Buy on Orynth</a>
+  </div>
+  <div class="token-steps">
+    <div class="token-step reveal">
+      <div class="step-num">01</div>
+      <div class="step-title">Get SONATA on Orynth</div>
+      <div class="step-body">Head to Orynth and pick up SONATA tokens. Launch price is 0.05 SOL — the cheapest it will ever be. Once the first 50 holders are in, price goes up.</div>
+      <div class="step-accent">Solana · 0.05 SOL</div>
+    </div>
+    <div class="token-step reveal">
+      <div class="step-num">02</div>
+      <div class="step-title">Unlock everything</div>
+      <div class="step-body">Your token is your key. Drop vault, private community, process journals, digital product downloads — all of it opens the moment you hold.</div>
+      <div class="step-accent">Instant access</div>
+    </div>
+    <div class="token-step reveal">
+      <div class="step-num">03</div>
+      <div class="step-title">Grow with the project</div>
+      <div class="step-body">Early holders get the best price and the loudest voice. Vote on what gets made in Vol. 02. Trade freely on the Orynth market — you earn a cut too.</div>
+      <div class="step-accent">12% royalty</div>
+    </div>
+  </div>
+</section>
+
+<!-- PERKS -->
+<section id="perks">
+  <div class="reveal">
+    <div class="section-label">Holder perks</div>
+    <h2 class="section-title">What you <em>actually</em> get.</h2>
+  </div>
+  <div class="perks-grid">
+    <div class="perk-card reveal">
+      <div class="perk-dot" style="background:rgba(160,140,230,0.8);"></div>
+      <div class="perk-tag">Early access</div>
+      <div class="perk-title">Works in progress</div>
+      <div class="perk-body">See every piece before it's finished. Rough sketches, colour decisions, the moments it almost went somewhere else entirely. The process, unfiltered.</div>
+    </div>
+    <div class="perk-card reveal">
+      <div class="perk-dot" style="background:rgba(90,170,210,0.8);"></div>
+      <div class="perk-tag">Digital products</div>
+      <div class="perk-title">Brush packs & UI kits</div>
+      <div class="perk-body">Every drop includes tools you can actually use — Procreate brushes, Figma components, texture overlays. Built from the same assets used in real projects.</div>
+    </div>
+    <div class="perk-card reveal">
+      <div class="perk-dot" style="background:rgba(180,130,200,0.8);"></div>
+      <div class="perk-tag">Community</div>
+      <div class="perk-title">Private holder group</div>
+      <div class="perk-body">A token-gated space for artists, designers, and collectors who hold SONATA. Feedback loops, early previews, and direct access to shape what gets made next.</div>
+    </div>
+    <div class="perk-card reveal">
+      <div class="perk-dot" style="background:rgba(130,200,170,0.7);"></div>
+      <div class="perk-tag">Process journal</div>
+      <div class="perk-title">18 pages per drop</div>
+      <div class="perk-body">A proper editorial PDF with each vol. — concept sketches, layer breakdowns, type decisions, and honest reflection on what worked and what didn't.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DROP -->
+<section id="drop">
+  <div class="drop-inner reveal">
+    <div class="section-label" style="text-align:center;">Now available</div>
+    <h2 class="drop-title">The <em>Reverie</em><br>Collection</h2>
+    <p class="drop-subtitle">Concept art tools for designers who dream in layers</p>
+
+    <div class="drop-items">
+      <div class="drop-item">
+        <div class="drop-dot" style="background:rgba(160,140,230,0.85);"></div>
+        <div class="drop-item-text">Atmospheric brush pack — 24 Procreate brushes</div>
+        <div class="drop-item-tag">BRUSHES</div>
+      </div>
+      <div class="drop-item">
+        <div class="drop-dot" style="background:rgba(90,170,210,0.85);"></div>
+        <div class="drop-item-text">Dreamscape UI kit — 40 Figma components</div>
+        <div class="drop-item-tag">UI KIT</div>
+      </div>
+      <div class="drop-item">
+        <div class="drop-dot" style="background:rgba(180,130,200,0.85);"></div>
+        <div class="drop-item-text">Mist & haze texture sheets — 12 overlays</div>
+        <div class="drop-item-tag">TEXTURES</div>
+      </div>
+      <div class="drop-item">
+        <div class="drop-dot" style="background:rgba(130,200,170,0.75);"></div>
+        <div class="drop-item-text">Process journal — 18 pages of concept sketches</div>
+        <div class="drop-item-tag">EXCLUSIVE</div>
+      </div>
+    </div>
+
+    <div class="drop-price-row">
+      <div class="drop-price">0.05 <span>SOL</span></div>
+      <div class="drop-price-note">
+        Launch price<br>
+        First 50 holders only<br>
+        Price increases after
+      </div>
+    </div>
+    <div class="drop-royalty">Resale royalty <span>12%</span> · Holders only · Solana network</div>
+    <a href="https://orynth.dev" target="_blank" class="btn-primary" style="font-size:12px;padding:16px 36px;">Hold SONATA on Orynth</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Sonata</div>
+  <div class="footer-links">
+    <a href="https://orynth.dev" target="_blank">Orynth</a>
+    <a href="#about">About</a>
+    <a href="#perks">Perks</a>
+    <a href="#drop">Drop</a>
+  </div>
+  <div class="footer-copy">© 2026 Sonata · Built on Solana · Listed on Orynth</div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // Hover effects on interactive elements
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '14px';
+      cursor.style.height = '14px';
+      ring.style.width = '48px';
+      ring.style.height = '48px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '8px';
+      cursor.style.height = '8px';
+      ring.style.width = '32px';
+      ring.style.height = '32px';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
